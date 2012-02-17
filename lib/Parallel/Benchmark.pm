@@ -130,8 +130,8 @@ sub _run_benchmark_on_child {
 
     sleep 1 while $wait;
 
-    my $start = [gettimeofday];
     debugf "starting benchmark on child %d pid %d", $n, $$;
+    my $start = [gettimeofday];
 
     my $score = 0;
     while ($run) {
