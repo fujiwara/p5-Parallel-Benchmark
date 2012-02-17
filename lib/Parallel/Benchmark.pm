@@ -73,7 +73,8 @@ sub run {
         sub {
             my ($pid, $exit_code, $ident, $exit_signal, $core_dump, $data) = @_;
             if (defined $data) {
-                $result->{score} += $data->[0];
+                $result->{score}   += $data->[0];
+                $result->{elapsed} += $data->[1];
             }
         }
     );
@@ -97,7 +98,7 @@ sub run {
     }
 
     sleep 1;
-    my $start = [ gettimeofday ];
+
     kill SIGUSR1, @pids;
     my $teardown = sub { kill SIGUSR2, @pids };
     local $SIG{INT} = $teardown;
@@ -107,7 +108,7 @@ sub run {
     $teardown->();
     $pm->wait_all_children;
 
-    $result->{elapsed} = tv_interval($start);
+    $result->{elapsed} /= $self->concurrency;
 
     infof "done benchmark: score %s, elapsed %.3f sec = %.3f / sec",
         $result->{score},
@@ -142,7 +143,7 @@ sub _run_benchmark_on_child {
     debugf "done benchmark on child %d: score %s, elapsed %.3f sec.",
         $n, $score, $elapsed;
 
-    return [ $score ];
+    return [ $score, $elapsed ];
 }
 
 
