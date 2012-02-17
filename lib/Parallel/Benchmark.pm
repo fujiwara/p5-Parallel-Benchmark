@@ -11,16 +11,19 @@ use POSIX;
 
 has benchmark => (
     is      => "rw",
+    isa     => "CodeRef",
     default => sub { sub { return 1 } },
 );
 
 has setup => (
     is      => "rw",
+    isa     => "CodeRef",
     default => sub { sub { } },
 );
 
 has teardown => (
     is      => "rw",
+    isa     => "CodeRef",
     default => sub { sub { } },
 );
 
@@ -156,7 +159,7 @@ Parallel::Benchmark -
   my $bm = Parallel::Benchmark->new(
       benchmark => sub {
           fib(10);
-          return 1;
+          return 1; # score
       },
       concurrency => 3,
   );

@@ -6,17 +6,17 @@ BEGIN { use_ok 'Parallel::Benchmark' }
 
 my $bm = Parallel::Benchmark->new(
     setup => sub {
-        my $n = shift;
+        my ($self, $n) = @_;
         warn "setup $n";
     },
     benchmark => sub {
-        my $n = shift;
+        my ($self, $n) = @_;
         sleep 1;
         warn "CHILD $n";
         return 1;
     },
     teardown => sub {
-        my $n = shift;
+        my ($self, $n) = @_;
         warn "teardown $n";
     },
     debug       => 1,

@@ -15,7 +15,7 @@ is fib(10) => 55, "fib(10) == 55";
 
 my $bm = Parallel::Benchmark->new(
     benchmark => sub {
-        my $n = shift;
+        my ($self, $n) = @_;
         fib(10);
         return 1;
     },
