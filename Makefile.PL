@@ -2,7 +2,10 @@ use inc::Module::Install;
 name 'Parallel-Benchmark';
 all_from 'lib/Parallel/Benchmark.pm';
 
-# requires '';
+requires 'Parallel::Prefork';
+requires 'Time::HiRes';
+requires 'Mouse';
+requires 'POSIX';
 
 tests 't/*.t';
 author_tests 'xt';
