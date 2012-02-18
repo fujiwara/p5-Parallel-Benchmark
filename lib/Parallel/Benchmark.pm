@@ -64,6 +64,9 @@ sub run {
         warn "$time [$type] $message\n";
     };
 
+    infof "starting benchmark: concurrency: %d, time: %d",
+        $self->concurrency, $self->time;
+
     my $pm = Parallel::ForkManager->new( $self->concurrency );
     my $result = {
         score   => 0,
@@ -156,33 +159,127 @@ __END__
 
 =head1 NAME
 
-Parallel::Benchmark -
+Parallel::Benchmark - parallel benchmark module
 
 =head1 SYNOPSIS
 
   use Parallel::Benchmark;
+  
   my $bm = Parallel::Benchmark->new(
       benchmark => sub {
+          my ($self, $id) = @_;
           fib(10);
           return 1; # score
       },
       concurrency => 3,
   );
   my $result = $bm->run;
+  
+  # output to STDERR
+  #  2012-02-18T21:18:17 [INFO] starting benchmark: concurrency: 3, time: 3
+  #  2012-02-18T21:18:21 [INFO] done benchmark: score 42018, elapsed 3.000 sec = 14005.655 / sec
+  
+  # $result hashref
   # {
-  #   'elapsed' => '3.066999',
-  #   'score' => 45342
+  #   'elapsed' => '3.000074',
+  #   'score'   => 42018,
   # }
 
 =head1 DESCRIPTION
 
-Parallel::Benchmark is forking benchmark framework
+Parallel::Benchmark is parallel benchmark module.
+
+=head1 METHODS
+
+=over 4
+
+=item B<new>(%args)
+
+create Parallel::Benchmark instance.
+
+  %args:
+    benchmark:   CodeRef to benchmark.
+    setup:       CodeRef run on child process before benchmark.
+    teardown:    CodeRef run on child process after benchmark.
+    time:        Int     benchmark running time. default=3
+    concurrency: Int     num of child processes. default=1
+    debug:       Bool    output debug log.       default=0
+
+=item B<run>()
+
+run benchmark. returns result hashref.
+
+    {
+      'stashes' => {
+        '1' => { },   # $self->stash of child id==1
+        '2' => { },
+        ...
+      },
+      'score'   => 1886,        # sum of score
+      'elapsed' => '3.0022655', # elapsed time (sec)
+    };
+
+=item B<stash>
+
+HashRef to store some data while processing.
+
+Child process's stash returns to result on parent process.
+
+  $result = $bm->run;
+  $result->{stashes}->{$id}; #= $self->stash on child $id
+
+=back
+
+=head1 EXAMPLES
+
+=head2 HTTP GET Benchmark
+
+  use LWP::UserAgent;
+  my $bm = Parallel::Benchmark->new(
+      setup => sub {
+          my ($self, $id) = @_;
+          $self->stash->{ua} = LWP::UserAgent->new;
+      },
+      benchmark => sub {
+          my ($self, $id) = @_;
+          my $res = $self->stash->{ua}->get("http://127.0.0.1/");
+          $self->stash->{code}->{ $res->code }++;
+          return 1;
+      },
+      teardown => sub {
+          my ($self, $id) = @_;
+          delete $self->stash->{ua};
+      },
+      concurrency => 2,
+  );
+  my $result = $bm->run();
+  # {
+      'stashes' => {
+        '1' => {
+          'code' => {
+            '200' => 932,
+            '500' => 7
+          }
+        },
+        '2' => {
+          'code' => {
+            '200' => 935,
+            '500' => 12
+          }
+        }
+      },
+      'score' => 1886,
+      'elapsed' => '3.0022655'
+    }
+
 
 =head1 AUTHOR
 
 FUJIWARA Shunichiro E<lt>fujiwara@cpan.orgE<gt>
 
 =head1 SEE ALSO
+
+Parallel::ForkManager
 
 =head1 LICENSE
 
