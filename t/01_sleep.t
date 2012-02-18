@@ -13,6 +13,7 @@ my $bm = Parallel::Benchmark->new(
         my ($self, $n) = @_;
         sleep 1;
         warn "CHILD $n";
+        $self->stash->{child_id} = $n;
         return 1;
     },
     teardown => sub {
@@ -27,5 +28,10 @@ my $result = $bm->run;
 isa_ok $result => "HASH";
 ok exists $result->{score},   "score exists";
 ok exists $result->{elapsed}, "elapsed exists";
+isa_ok $result->{stashes} => "HASH";
+is $result->{stashes}->{1}->{child_id} => 1;
+is $result->{stashes}->{2}->{child_id} => 2;
+is $result->{stashes}->{3}->{child_id} => 3;
+note explain $result;
 
 done_testing;

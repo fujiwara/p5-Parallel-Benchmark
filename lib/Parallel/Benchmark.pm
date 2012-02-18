@@ -68,13 +68,15 @@ sub run {
     my $result = {
         score   => 0,
         elapsed => 0,
+        stashes => {},
     };
     $pm->run_on_finish (
         sub {
             my ($pid, $exit_code, $ident, $exit_signal, $core_dump, $data) = @_;
             if (defined $data) {
-                $result->{score}   += $data->[0];
-                $result->{elapsed} += $data->[1];
+                $result->{score}   += $data->[1];
+                $result->{elapsed} += $data->[2];
+                $result->{stashes}->{ $data->[0] } = $data->[3];
             }
         }
     );
@@ -131,11 +133,13 @@ sub _run_benchmark_on_child {
     sleep 1 while $wait;
 
     debugf "starting benchmark on child %d pid %d", $n, $$;
-    my $start = [gettimeofday];
 
-    my $score = 0;
+    my $benchmark = $self->benchmark;
+    my $score     = 0;
+    my $start     = [gettimeofday];
+
     while ($run) {
-        $score += $self->benchmark->( $self, $n );
+        $score += $benchmark->( $self, $n );
     }
 
     my $elapsed = tv_interval($start);
@@ -143,7 +147,7 @@ sub _run_benchmark_on_child {
     debugf "done benchmark on child %d: score %s, elapsed %.3f sec.",
         $n, $score, $elapsed;
 
-    return [ $score, $elapsed ];
+    return [ $n, $score, $elapsed, $self->stash ];
 }
 
 
