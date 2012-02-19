@@ -7,7 +7,7 @@ use Mouse;
 use Log::Minimal;
 use Time::HiRes qw/ tv_interval gettimeofday /;
 use Parallel::ForkManager;
-use POSIX;
+use POSIX qw/ SIGUSR1 SIGUSR2 /;
 
 has benchmark => (
     is      => "rw",
@@ -58,7 +58,8 @@ has stash => (
 sub run {
     my $self = shift;
 
-    local $Log::Minimal::COLOR = 1;
+    local $Log::Minimal::COLOR = 1
+        if -t *STDERR;
     local $Log::Minimal::PRINT = sub {
         my ( $time, $type, $message, $trace) = @_;
         warn "$time [$type] $message\n";
