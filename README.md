@@ -5,24 +5,23 @@ Parallel::Benchmark - parallel benchmark module
 # SYNOPSIS
 
     use Parallel::Benchmark;
-    
-
+    sub fib {
+        my $n = shift;
+        return $n if $n == 0 or $n == 1;
+        return fib( $n - 1 ) + fib( $n - 2 );
+    }
     my $bm = Parallel::Benchmark->new(
         benchmark => sub {
             my ($self, $id) = @_;
-            fib(10);
+            fib(10);  # code for benchmarking
             return 1; # score
         },
         concurrency => 3,
     );
     my $result = $bm->run;
-    
-
     # output to STDERR
     #  2012-02-18T21:18:17 [INFO] starting benchmark: concurrency: 3, time: 3
     #  2012-02-18T21:18:21 [INFO] done benchmark: score 42018, elapsed 3.000 sec = 14005.655 / sec
-    
-
     # $result hashref
     # {
     #   'elapsed' => '3.000074',
