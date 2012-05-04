@@ -59,7 +59,7 @@ sub run {
     my $self = shift;
 
     local $Log::Minimal::COLOR = 1
-        if -t *STDERR;
+        if -t *STDERR;                ## no critic
     local $Log::Minimal::PRINT = sub {
         my ( $time, $type, $message, $trace) = @_;
         warn "$time [$type] $message\n";
@@ -116,11 +116,19 @@ sub run {
 
     $result->{elapsed} /= $self->concurrency;
 
-    infof "done benchmark: score %s, elapsed %.3f sec = %.3f / sec",
-        $result->{score},
-        $result->{elapsed},
-        $result->{score} / $result->{elapsed},
-    ;
+    if ( $result->{elapsed} > 0 ) {
+        infof "done benchmark: score %s, elapsed %.3f sec = %.3f / sec",
+            $result->{score},
+            $result->{elapsed},
+            $result->{score} / $result->{elapsed},
+        ;
+    }
+    else {
+        warnf "done benchmark: score %s, but elapsed time = 0 (maybe failed?)",
+            $result->{score},
+       ;
+    }
+
     $result;
 }
 
