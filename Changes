@@ -1,6 +1,9 @@
 Revision history for Perl extension Parallel::Benchmark
 
-0.03    The May 21 20:36:00 2012
+0.04    Mon May 21 22:11:34 JST 2012
+        - use File::Temp to create temporary directory.
+
+0.03    Mon May 21 20:36:00 JST 2012
         - add dependency Parallel::Scoreboard
         - fix problem caused slow setup() on child.
 
