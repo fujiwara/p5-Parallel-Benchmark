@@ -3,6 +3,7 @@ name 'Parallel-Benchmark';
 all_from 'lib/Parallel/Benchmark.pm';
 
 requires 'Parallel::ForkManager';
+requires 'Parallel::Scoreboard';
 requires 'Log::Minimal';
 requires 'Time::HiRes';
 requires 'Mouse';

@@ -7,6 +7,7 @@ use Mouse;
 use Log::Minimal;
 use Time::HiRes qw/ tv_interval gettimeofday /;
 use Parallel::ForkManager;
+use Parallel::Scoreboard;
 use POSIX qw/ SIGUSR1 SIGUSR2 /;
 
 has benchmark => (
@@ -55,6 +56,15 @@ has stash => (
     default => sub { +{} },
 );
 
+has scoreboard => (
+    is => "rw",
+    default => sub {
+        Parallel::Scoreboard->new(
+            base_dir => "/tmp/" . __PACKAGE__ . ".$$",
+        );
+    },
+);
+
 sub run {
     my $self = shift;
 
@@ -84,7 +94,9 @@ sub run {
             }
         }
     );
-    my @pids;
+    my (@pids, %prepared_children);
+    my $parent_pid = $$;
+
  CHILD:
     for my $n ( 1 .. $self->concurrency ) {
         my $pid = $pm->start;
@@ -96,6 +108,8 @@ sub run {
         else {
             #child
             $self->setup->( $self, $n );
+            $self->scoreboard->update("setup_done");
+
             my $r = $self->_run_benchmark_on_child($n);
             $self->teardown->( $self, $n );
             $pm->finish( 0, $r );
@@ -103,6 +117,13 @@ sub run {
         }
     }
 
+    # wait for all children's setup finish
+    while (1) {
+        my $stats = $self->scoreboard->read_all();
+        my $done  = scalar grep { /setup_done/ } values %$stats;
+        last if $done == @pids;
+        sleep 1;
+    }
     sleep 1;
 
     kill SIGUSR1, @pids;
@@ -137,10 +158,10 @@ sub _run_benchmark_on_child {
     my $n    = shift;
 
     my ($wait, $run) = (1, 1);
-    debugf "spwan child %d pid %d", $n, $$;
     local $SIG{USR1} = sub { $wait = 0 };
     local $SIG{USR2} = sub { $run = 0  };
     local $SIG{INT}  = sub {};
+    debugf "spwan child %d pid %d", $n, $$;
 
     sleep 1 while $wait;
 
@@ -150,9 +171,7 @@ sub _run_benchmark_on_child {
     my $score     = 0;
     my $start     = [gettimeofday];
 
-    while ($run) {
-        $score += $benchmark->( $self, $n );
-    }
+    $score += $benchmark->( $self, $n ) while $run;
 
     my $elapsed = tv_interval($start);
 
