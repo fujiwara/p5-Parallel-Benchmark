@@ -4,6 +4,7 @@ all_from 'lib/Parallel/Benchmark.pm';
 
 requires 'Parallel::ForkManager';
 requires 'Parallel::Scoreboard';
+requires 'File::Temp';
 requires 'Log::Minimal';
 requires 'Time::HiRes';
 requires 'Mouse';

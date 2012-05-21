@@ -8,6 +8,7 @@ use Log::Minimal;
 use Time::HiRes qw/ tv_interval gettimeofday /;
 use Parallel::ForkManager;
 use Parallel::Scoreboard;
+use File::Temp qw/ tempdir /;
 use POSIX qw/ SIGUSR1 SIGUSR2 /;
 
 has benchmark => (
@@ -59,9 +60,8 @@ has stash => (
 has scoreboard => (
     is => "rw",
     default => sub {
-        Parallel::Scoreboard->new(
-            base_dir => "/tmp/" . __PACKAGE__ . ".$$",
-        );
+        my $dir = tempdir( CLEANUP => 1 );
+        Parallel::Scoreboard->new( base_dir => $dir );
     },
 );
 
@@ -84,7 +84,7 @@ sub run {
         elapsed => 0,
         stashes => {},
     };
-    $pm->run_on_finish (
+    $pm->run_on_finish(
         sub {
             my ($pid, $exit_code, $ident, $exit_signal, $core_dump, $data) = @_;
             if (defined $data) {
@@ -117,7 +117,7 @@ sub run {
         }
     }
 
-    # wait for all children's setup finish
+    # wait for all children finish setup()
     while (1) {
         my $stats = $self->scoreboard->read_all();
         my $done  = scalar grep { /setup_done/ } values %$stats;
