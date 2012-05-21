@@ -1,5 +1,9 @@
 Revision history for Perl extension Parallel::Benchmark
 
+0.03    The May 21 20:36:00 2012
+        - add dependency Parallel::Scoreboard
+        - fix problem caused slow setup() on child.
+
 0.02    Fri May 04 12:16:31 2012
         - avoid 'Illegal division by zero' (Carl Furst)
 
