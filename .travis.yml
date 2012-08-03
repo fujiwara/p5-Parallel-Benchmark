@@ -5,6 +5,8 @@ perl:
   - "5.12"
   - "5.10"
   - "5.8"
+before_install:
+  - perl Makefile.PL | cpanm
 notifications:
   email:
     - fujiwara.shunichiro@gmail.com
