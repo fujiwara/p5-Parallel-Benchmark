@@ -1,5 +1,8 @@
 Revision history for Perl extension Parallel::Benchmark
 
+0.05    Tue Oct 09 23:18:00 JST 2012
+        - depends on Parallel::ForkManager >= 0.7.6 (Songmu)
+
 0.04    Mon May 21 22:11:34 JST 2012
         - use File::Temp to create temporary directory.
 
