@@ -14,7 +14,7 @@ my $bm = Parallel::Benchmark->new(
         return 1;
     },
     debug       => 1,
-    time        => 1,
+    time        => 3,
     concurrency => 4,
 );
 
@@ -23,8 +23,8 @@ isa_ok $result => "HASH";
 ok exists $result->{score},   "score exists";
 ok exists $result->{elapsed}, "elapsed exists";
 is scalar (keys %{$result->{stashes}}) => 4, "all stashes exists";
-ok $result->{elapsed} >= 0.9, "elapsed >= 0.9";
-ok $result->{elapsed} <= 1.1, "elapsed <= 1.1";
+ok $result->{elapsed} >= 2, "elapsed >= 2";
+ok $result->{elapsed} <= 4, "elapsed <= 4";
 note explain $result;
 
 done_testing;
