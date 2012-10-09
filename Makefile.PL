@@ -22,7 +22,7 @@ use inc::Module::Install;
 name 'Parallel-Benchmark';
 all_from 'lib/Parallel/Benchmark.pm';
 
-requires 'Parallel::ForkManager';
+requires 'Parallel::ForkManager' => "0.7.6";
 requires 'Parallel::Scoreboard';
 requires 'File::Temp';
 requires 'Log::Minimal';
