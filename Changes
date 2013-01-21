@@ -1,5 +1,8 @@
 Revision history for Perl extension Parallel::Benchmark
 
+0.06    Mon Jan 21 15:43:50 JST 2013
+        - added halt() to exit child processes normally.
+
 0.05    Tue Oct 09 23:18:00 JST 2012
         - depends on Parallel::ForkManager >= 0.7.6 (Songmu)
 

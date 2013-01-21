@@ -1,7 +1,7 @@
 package Parallel::Benchmark;
 use strict;
 use warnings;
-our $VERSION = '0.05';
+our $VERSION = '0.06';
 
 use Mouse;
 use Log::Minimal;
@@ -119,8 +119,8 @@ sub run {
         }
     }
 
-    # wait for all children finish setup()
     while (1) {
+        debugf "waiting for wall children finish setup()";
         my $stats = $self->scoreboard->read_all();
         my $done  = scalar grep { /setup_done/ } values %$stats;
         last if $done == @pids;
@@ -129,15 +129,22 @@ sub run {
     sleep 1;
 
     kill SIGUSR1, @pids;
-    my $teardown = sub { kill SIGUSR2, @pids };
-    local $SIG{INT} = $teardown;
+    my $start = [gettimeofday];
+    try {
+        my $teardown = sub {
+            alarm 0;
+            kill SIGUSR2, @pids;
+            $pm->wait_all_children;
+            die;
+        };
+        local $SIG{INT}  = $teardown;
+        local $SIG{ALRM} = $teardown;
+        alarm $self->time;
+        $pm->wait_all_children;
+        alarm 0;
+    };
 
-    sleep $self->time;
-
-    $teardown->();
-    $pm->wait_all_children;
-
-    $result->{elapsed} /= $self->concurrency;
+    $result->{elapsed} = tv_interval($start);
 
     if ( $result->{elapsed} > 0 ) {
         infof "done benchmark: score %s, elapsed %.3f sec = %.3f / sec",

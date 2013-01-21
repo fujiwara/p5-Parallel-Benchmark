@@ -16,8 +16,9 @@ my $bm = Parallel::Benchmark->new(
 
 my $result = $bm->run;
 isa_ok $result => "HASH";
-is $result->{score}   => 0,   "score 0";
-is $result->{elapsed} => 0, "elapsed 0";
+is $result->{score}  => 0,   "score 0";
+ok $result->{elapsed} > 0, "elapsed > 0";
+ok $result->{elapsed} < 1, "elapsed < 1";
 note explain $result;
 
 done_testing;
