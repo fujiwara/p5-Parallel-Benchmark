@@ -10,6 +10,8 @@ use Parallel::ForkManager;
 use Parallel::Scoreboard;
 use File::Temp qw/ tempdir /;
 use POSIX qw/ SIGUSR1 SIGUSR2 /;
+use Try::Tiny;
+use Scalar::Util qw/ blessed /;
 
 has benchmark => (
     is      => "rw",
@@ -171,7 +173,20 @@ sub _run_benchmark_on_child {
     my $score     = 0;
     my $start     = [gettimeofday];
 
-    $score += $benchmark->( $self, $n ) while $run;
+    try {
+        $score += $benchmark->( $self, $n ) while $run;
+    }
+    catch {
+        my $e = $_;
+        my $class = blessed $e;
+        if ( $class && $class eq __PACKAGE__ . "::HaltedException" ) {
+            infof "benchmark process halted %d pid %d: %s", $n, $$, $$e;
+        }
+        else {
+            critf "benchmark process died %d pid %d: %s", $n, $$, $e;
+            die $e;
+        }
+    };
 
     my $elapsed = tv_interval($start);
 
@@ -179,6 +194,12 @@ sub _run_benchmark_on_child {
         $n, $score, $elapsed;
 
     return [ $n, $score, $elapsed, $self->stash ];
+}
+
+sub halt {
+    my $self = shift;
+    my $msg  = shift;
+    die bless \$msg, __PACKAGE__ . "::HaltedException";
 }
 
 
@@ -257,6 +278,18 @@ Child process's stash returns to result on parent process.
 
   $result = $bm->run;
   $result->{stashes}->{$id}; #= $self->stash on child $id
+
+=item B<halt>()
+
+Halt benchmark on child processes. it means normally exit.
+
+  benchmark => sub {
+      my ($self, $id) = @_;
+      if (COND) {
+         $self->halt("benchmark $id finished!");
+      }
+      ...
+  },
 
 =back
 

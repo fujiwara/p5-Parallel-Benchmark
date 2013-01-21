@@ -29,6 +29,7 @@ requires 'Log::Minimal';
 requires 'Time::HiRes';
 requires 'Mouse';
 requires 'POSIX';
+requires 'Try::Tiny';
 
 tests 't/*.t';
 author_tests 'xt';
