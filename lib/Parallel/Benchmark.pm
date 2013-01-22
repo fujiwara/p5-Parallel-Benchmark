@@ -9,7 +9,7 @@ use Time::HiRes qw/ tv_interval gettimeofday /;
 use Parallel::ForkManager;
 use Parallel::Scoreboard;
 use File::Temp qw/ tempdir /;
-use POSIX qw/ SIGUSR1 SIGUSR2 /;
+use POSIX qw/ SIGUSR1 SIGUSR2 SIGTERM /;
 use Try::Tiny;
 use Scalar::Util qw/ blessed /;
 
@@ -97,6 +97,13 @@ sub run {
         }
     );
     my $pids = {};
+    local $SIG{INT} = $SIG{TERM} = sub {
+        infof "terminating benchmark processes...";
+        kill SIGTERM, keys %$pids;
+        $pm->wait_all_children;
+        exit;
+    };
+
  CHILD:
     for my $n ( 1 .. $self->concurrency ) {
         my $pid = $pm->start;
@@ -107,6 +114,7 @@ sub run {
         }
         else {
             # child
+            local $SIG{INT} = $SIG{TERM} = sub { exit };
             debugf "spwan child process[%d]", $n;
             my $r = $self->_run_on_child($n);
             $pm->finish(0, $r);
