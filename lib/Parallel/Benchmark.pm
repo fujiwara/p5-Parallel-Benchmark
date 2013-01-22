@@ -1,7 +1,7 @@
 package Parallel::Benchmark;
 use strict;
 use warnings;
-our $VERSION = '0.06';
+our $VERSION = '0.07';
 
 use Mouse;
 use Log::Minimal;
@@ -74,7 +74,7 @@ sub run {
         if -t *STDERR;                ## no critic
     local $Log::Minimal::PRINT = sub {
         my ( $time, $type, $message, $trace) = @_;
-        warn "$time [$type] $message\n";
+        warn "$time [$$] [$type] $message\n";
     };
 
     infof "starting benchmark: concurrency: %d, time: %d",
@@ -96,44 +96,32 @@ sub run {
             }
         }
     );
-    my (@pids, %prepared_children);
-    my $parent_pid = $$;
-
+    my $pids = {};
  CHILD:
     for my $n ( 1 .. $self->concurrency ) {
         my $pid = $pm->start;
         if ($pid) {
             # parent
-            push @pids, $pid;
+            $pids->{$pid} = 1;
             next CHILD;
         }
         else {
-            #child
-            $self->setup->( $self, $n );
-            $self->scoreboard->update("setup_done");
-
-            my $r = $self->_run_benchmark_on_child($n);
-            $self->teardown->( $self, $n );
-            $pm->finish( 0, $r );
+            # child
+            debugf "spwan child process[%d]", $n;
+            my $r = $self->_run_on_child($n);
+            $pm->finish(0, $r);
             exit;
         }
     }
 
-    while (1) {
-        debugf "waiting for wall children finish setup()";
-        my $stats = $self->scoreboard->read_all();
-        my $done  = scalar grep { /setup_done/ } values %$stats;
-        last if $done == @pids;
-        sleep 1;
-    }
-    sleep 1;
+    $self->_wait_for_finish_setup($pids);
 
-    kill SIGUSR1, @pids;
+    kill SIGUSR1, keys %$pids;
     my $start = [gettimeofday];
     try {
         my $teardown = sub {
             alarm 0;
-            kill SIGUSR2, @pids;
+            kill SIGUSR2, keys %$pids;
             $pm->wait_all_children;
             die;
         };
@@ -146,20 +134,52 @@ sub run {
 
     $result->{elapsed} = tv_interval($start);
 
-    if ( $result->{elapsed} > 0 ) {
-        infof "done benchmark: score %s, elapsed %.3f sec = %.3f / sec",
-            $result->{score},
-            $result->{elapsed},
-            $result->{score} / $result->{elapsed},
-        ;
-    }
-    else {
-        warnf "done benchmark: score %s, but elapsed time = 0 (maybe failed?)",
-            $result->{score},
-       ;
-    }
-
+    infof "done benchmark: score %s, elapsed %.3f sec = %.3f / sec",
+        $result->{score},
+        $result->{elapsed},
+        $result->{score} / $result->{elapsed},
+    ;
     $result;
+}
+
+sub _run_on_child {
+    my $self = shift;
+    my $n    = shift;
+
+    my $r = [ $n, 0, 0, {} ];
+    try {
+        $self->scoreboard->update("setup_start");
+        $self->setup->( $self, $n );
+        $self->scoreboard->update("setup_done");
+        $r = $self->_run_benchmark_on_child($n);
+        $self->teardown->( $self, $n );
+    }
+    catch {
+        my $e = $_;
+        critf "benchmark process[%d] died: %s", $n, $e;
+    };
+    return $r;
+}
+
+sub _wait_for_finish_setup {
+    my $self = shift;
+    my $pids = shift;
+    while (1) {
+        sleep 1;
+        debugf "waiting for all children finish setup()";
+        my $stats = $self->scoreboard->read_all();
+        my $done = 0;
+        for my $pid (keys %$pids) {
+            if (my $s = $stats->{$pid}) {
+                $done++ if $s eq "setup_done";
+            }
+            elsif ( kill(0, $pid) == 1 ) {
+                # maybe died...
+                delete $pids->{$pid};
+            }
+        }
+        last if $done == keys %$pids;
+    }
 }
 
 sub _run_benchmark_on_child {
@@ -170,11 +190,10 @@ sub _run_benchmark_on_child {
     local $SIG{USR1} = sub { $wait = 0 };
     local $SIG{USR2} = sub { $run = 0  };
     local $SIG{INT}  = sub {};
-    debugf "spwan child %d pid %d", $n, $$;
 
     sleep 1 while $wait;
 
-    debugf "starting benchmark on child %d pid %d", $n, $$;
+    debugf "starting benchmark process[%d]", $n;
 
     my $benchmark = $self->benchmark;
     my $score     = 0;
@@ -187,17 +206,16 @@ sub _run_benchmark_on_child {
         my $e = $_;
         my $class = blessed $e;
         if ( $class && $class eq __PACKAGE__ . "::HaltedException" ) {
-            infof "benchmark process halted %d pid %d: %s", $n, $$, $$e;
+            infof "benchmark process[%d] halted: %s", $n, $$e;
         }
         else {
-            critf "benchmark process died %d pid %d: %s", $n, $$, $e;
             die $e;
         }
     };
 
     my $elapsed = tv_interval($start);
 
-    debugf "done benchmark on child %d: score %s, elapsed %.3f sec.",
+    debugf "done benchmark process[%d]: score %s, elapsed %.3f sec.",
         $n, $score, $elapsed;
 
     return [ $n, $score, $elapsed, $self->stash ];
@@ -208,7 +226,6 @@ sub halt {
     my $msg  = shift;
     die bless \$msg, __PACKAGE__ . "::HaltedException";
 }
-
 
 1;
 __END__

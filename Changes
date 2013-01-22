@@ -1,5 +1,9 @@
 Revision history for Perl extension Parallel::Benchmark
 
+0.07    Mon Jan 22 13:38:46 JST 2013
+        - use SIGALRM to wait timeout.
+        - When all child processes halted before timeout, finish benchmarking immediately.
+
 0.06    Mon Jan 21 15:43:50 JST 2013
         - added halt() to exit child processes normally.
 
