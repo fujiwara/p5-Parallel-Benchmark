@@ -70,7 +70,7 @@
          "web" : "https://github.com/fujiwara/p5-Parallel-Benchmark"
       }
    },
-   "version" : "0.07",
+   "version" : "0.08",
    "x_contributors" : [
       "FUJIWARA Shunichiro <fujiwara.shunichiro@gmail.com>"
    ]
