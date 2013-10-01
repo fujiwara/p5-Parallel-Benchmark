@@ -9,3 +9,10 @@ nytprof.out
 MANIFEST.bak
 *.sw[po]
 *~
+/Parallel-Benchmark-*
+/.build
+/_build_params
+/Build
+!Build/
+!META.json
+!LICENSE

@@ -36,38 +36,50 @@ Parallel::Benchmark is parallel benchmark module.
 
 - __new__(%args)
 
-create Parallel::Benchmark instance.
+    create Parallel::Benchmark instance.
 
-    %args:
-      benchmark:   CodeRef to benchmark.
-      setup:       CodeRef run on child process before benchmark.
-      teardown:    CodeRef run on child process after benchmark.
-      time:        Int     benchmark running time. default=3
-      concurrency: Int     num of child processes. default=1
-      debug:       Bool    output debug log.       default=0
+        %args:
+          benchmark:   CodeRef to benchmark.
+          setup:       CodeRef run on child process before benchmark.
+          teardown:    CodeRef run on child process after benchmark.
+          time:        Int     benchmark running time. default=3
+          concurrency: Int     num of child processes. default=1
+          debug:       Bool    output debug log.       default=0
 
 - __run__()
 
-run benchmark. returns result hashref.
+    run benchmark. returns result hashref.
 
-    {
-      'stashes' => {
-        '1' => { },   # $self->stash of child id==1
-        '2' => { },
-        ...
-      },
-      'score'   => 1886,        # sum of score
-      'elapsed' => '3.0022655', # elapsed time (sec)
-    };
+        {
+          'stashes' => {
+            '1' => { },   # $self->stash of child id==1
+            '2' => { },
+            ...
+          },
+          'score'   => 1886,        # sum of score
+          'elapsed' => '3.0022655', # elapsed time (sec)
+        };
 
 - __stash__
 
-HashRef to store some data while processing.
+    HashRef to store some data while processing.
 
-Child process's stash returns to result on parent process.
+    Child process's stash returns to result on parent process.
 
-    $result = $bm->run;
-    $result->{stashes}->{$id}; #= $self->stash on child $id
+        $result = $bm->run;
+        $result->{stashes}->{$id}; #= $self->stash on child $id
+
+- __halt__()
+
+    Halt benchmark on child processes. it means normally exit.
+
+        benchmark => sub {
+            my ($self, $id) = @_;
+            if (COND) {
+               $self->halt("benchmark $id finished!");
+            }
+            ...
+        },
 
 # EXAMPLES
 
