@@ -6,7 +6,7 @@ our $VERSION = '0.08';
 use Mouse;
 use Log::Minimal;
 use Time::HiRes qw/ tv_interval gettimeofday /;
-use Parallel::ForkManager;
+use Parallel::ForkManager "1.08";
 use Parallel::Scoreboard;
 use File::Temp qw/ tempdir /;
 use POSIX qw/ SIGUSR1 SIGUSR2 SIGTERM /;
@@ -81,6 +81,7 @@ sub run {
         $self->concurrency, $self->time;
 
     my $pm = Parallel::ForkManager->new( $self->concurrency );
+    $pm->set_waitpid_blocking_sleep(0);  # true blocking calls enabled
     my $result = {
         score   => 0,
         elapsed => 0,

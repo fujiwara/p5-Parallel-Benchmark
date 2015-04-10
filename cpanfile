@@ -2,7 +2,7 @@ requires 'File::Temp';
 requires 'Log::Minimal';
 requires 'Mouse';
 requires 'POSIX';
-requires 'Parallel::ForkManager', 'v0.7.6';
+requires 'Parallel::ForkManager', '1.08';
 requires 'Parallel::Scoreboard';
 requires 'Time::HiRes';
 requires 'Try::Tiny';
