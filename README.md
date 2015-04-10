@@ -123,8 +123,6 @@ Parallel::Benchmark is parallel benchmark module.
         'elapsed' => '3.0022655'
       }
 
-
-
 # AUTHOR
 
 FUJIWARA Shunichiro <fujiwara@cpan.org>
