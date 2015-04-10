@@ -1,7 +1,7 @@
 package Parallel::Benchmark;
 use strict;
 use warnings;
-our $VERSION = '0.08';
+our $VERSION = '0.09';
 
 use Mouse;
 use Log::Minimal;

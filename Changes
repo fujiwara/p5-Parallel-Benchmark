@@ -2,6 +2,10 @@ Revision history for Perl extension Parallel::Benchmark
 
 {{$NEXT}}
 
+0.09 2015-04-10T05:30:28Z
+        - Depends on Parallel::ForkManager 1.08
+          https://github.com/fujiwara/p5-Parallel-Benchmark/issues/1
+
 0.08 2013-10-01T14:17:31Z
         - No code changes.
         - switch to Minilla.
