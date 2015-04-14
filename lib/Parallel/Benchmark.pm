@@ -6,7 +6,7 @@ our $VERSION = '0.09';
 use Mouse;
 use Log::Minimal;
 use Time::HiRes qw/ tv_interval gettimeofday /;
-use Parallel::ForkManager "1.08";
+use Parallel::ForkManager "1.12";
 use Parallel::Scoreboard;
 use File::Temp qw/ tempdir /;
 use POSIX qw/ SIGUSR1 SIGUSR2 SIGTERM /;
