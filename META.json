@@ -53,7 +53,7 @@
             "Log::Minimal" : "0",
             "Mouse" : "0",
             "POSIX" : "0",
-            "Parallel::ForkManager" : "1.08",
+            "Parallel::ForkManager" : "1.12",
             "Parallel::Scoreboard" : "0",
             "Time::HiRes" : "0",
             "Try::Tiny" : "0"
@@ -67,11 +67,12 @@
       },
       "homepage" : "https://github.com/fujiwara/p5-Parallel-Benchmark",
       "repository" : {
-         "url" : "https://github.com/fujiwara/p5-Parallel-Benchmark",
+         "type" : "git",
+         "url" : "git://github.com/fujiwara/p5-Parallel-Benchmark.git",
          "web" : "https://github.com/fujiwara/p5-Parallel-Benchmark"
       }
    },
-   "version" : "0.09",
+   "version" : "0.10",
    "x_contributors" : [
       "FUJIWARA Shunichiro <fujiwara.shunichiro@gmail.com>"
    ]
