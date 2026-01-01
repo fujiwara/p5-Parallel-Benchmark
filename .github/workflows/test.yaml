@@ -17,7 +17,7 @@ jobs:
           perl-version: ${{ matrix.perl }}
       - name: test
         run: |
-          cpanm --installdeps .
+          cpm install
           perl Build.PL
           ./Build
           ./Build test
