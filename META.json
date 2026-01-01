@@ -70,8 +70,9 @@
          "web" : "https://github.com/fujiwara/p5-Parallel-Benchmark"
       }
    },
-   "version" : "0.10",
+   "version" : "0.11",
    "x_contributors" : [
+      "FUJIWARA Shunichiro <67804+fujiwara@users.noreply.github.com>",
       "fujiwara <fujiwara.shunichiro@gmail.com>"
    ],
    "x_serialization_backend" : "JSON::PP version 4.16",
